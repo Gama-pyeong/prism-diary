@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>我的棱镜</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2/dist/echarts-wordcloud.min.js"></script>
+    <style>
+    * {
+        box-sizing: border-box;
+        font-family: "Microsoft Yahei", sans-serif;
+    }
+    body {
+        background-color: #edf4f9; 
+        max-width: 850px;
+        margin: 30px auto;
+        padding: 0 20px;
+    }
+    .box-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 12px rgba(100,149,197,0.12);
+    }
+    h2, h3 {
+        color: #2c4b66;
+        margin-top:0;
+    }
+    .slider-item {
+        margin:16px 0;
+    }
+    label{
+        display:block;
+        margin-bottom:6px;
+        color:#3a5b78;
+    }
+    input[type="range"]{
+        width:100%;
+        accent-color: #74a9d8;
+    }
+    textarea{
+        width:100%;
+        border:1px solid #c9dceb;
+        border-radius:10px;
+        padding:12px;
+        font-size:16px;
+        min-height:80px;
+        background-color:#f8fbfe;
+    }
+    .btn-group{
+        margin-top:16px;
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap;
+    }
+    button{
+        background:#649ec9; 
+        color:white;
+        border:none;
+        padding:10px 18px;
+        border-radius:10px;
+        font-size:15px;
+        cursor:pointer;
+    }
+    button:hover{
+        background:#4b86b4;
+    }
+    #insightResult{
+        background-color:#f0f7fc;
+        border:1px solid #c9dceb;
+        border-radius:10px;
+        padding:14px;
+        white-space:pre-wrap;
+        min-height:140px;
+        line-height:1.6;
+        color:#2c4b66;
+    }
+    canvas{
+        width:100% !important;
+    }
+   
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+</head>
+<body>
+<h4>精力走势图</h4>   
+<canvas id="chart" width="600" height="160" style="border:1px solid #aaa;"></canvas>
+<br>
+<h4>心情日历热力图（近一年）</h4>
+   <div id="heatmap" style="display:grid;grid-template-columns:repeat(52,1fr);gap:4px;margin: 8px 0;"></div>
+ </div>
+ <!-- 3.输入框、滑块、按钮 -->
+ <div class="line-item">
+   <label>心情</label>
+   <input type="range" id="mood" min="1" max="10" value="5">
+   <span id="moodVal">5</span>
+ </div>
+ <div class="line-item">
+   <label>精力</label>
+   <input type="range" id="energy" min="1" max="10" value="5">
+   <span id="energyVal">5</span>
+<textarea id="entryText" placeholder="用一句话记下今天……"></textarea>
+
+<button id="btnSave">记下这一笔</button>
+ <button id="btnClear">清空全部记录</button>
+ <button onclick="runInsightEngine()">运行情绪洞察分析</button>
+ <div class="box-card">
+    <h3>情绪洞察分析结果</h3>
+    <pre id="insightResult" style="white-space:pre-wrap;min-height:120px;padding:10px;border:1px solid #ddd;border-radius:8px;"></pre>
+</div>
+<script src="app.js"></script>
+<div style="width:800px;height:400px;" id="wordChart"></div>
+<button onclick="drawWordChart()">绘制高频词柱状图</button>
+<script>
+function drawWordChart(){
+  const res = countWords(records).slice(0,10);
+  const chartDom = document.getElementById('wordChart');
+  const myChart = echarts.init(chartDom);
+  const option = {
+    title:{text:"日记高频词统计"},
+    xAxis:{type:"category",data:res.map(item=>item[0])},
+    yAxis:{type:"value"},
+    series:[{type:"bar",data:res.map(item=>item[1])}]
+  };
+  myChart.setOption(option);
+
+  // =========新增词云代码=========
+  // 转换数据格式 [词语,次数] → {name,value}
+  const wordCloudData = res.map(item=>{
+    return {name:item[0], value:item[1]}
+  })
+  renderWordCloud(wordCloudData);
+}
+</script>
+<!-- 词云图容器 -->
+<div>
+  <h3>日记文本词云图</h3>
+  <div id="wordCloud" style="width:800px;height:400px;border:1px solid #ccc;"></div>
+</div>
+</body>
+</html>
